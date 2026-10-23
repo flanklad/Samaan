@@ -1,0 +1,21 @@
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Pytest cache
+.pytest_cache/
+
+# PyCharm project-specific files
+.idea/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Keep an example configuration file if one is created later
+!.env.example
