@@ -3,7 +3,7 @@ from app.schemas.ProductResponse import ProductResponse
 from app.schemas.ProductCreate import ProductCreate
 from app.schemas.ProductUpdate import ProductUpdate
 from app.products_data import products
-
+from app.services.products import list_products as list_products_service
 
 router=APIRouter()
 
@@ -11,15 +11,11 @@ next_product_id =1
 
 @router.get("/products", response_model=list[ProductResponse])
 def get_products(category: str | None=None, skip: int =Query(default=0,ge=0),limit: int = Query(default=10,ge=1, le=100)):
-
-    if category is not None:
-        filtered_products=[product for product in products
-                           if product.category==category
-                           ]
-    else:
-        filtered_products=products
-
-    return filtered_products[skip:skip+limit]
+    return list_products_service(
+        category=category,
+        skip=skip,
+        limit=limit,
+    )
 
 @router.get("/products/{product_id}",response_model=ProductResponse)
 def get_product_by_id(product_id:int):
@@ -103,3 +99,4 @@ def delete_product(product_id:int):
 
     products.remove(product)
     return None
+
