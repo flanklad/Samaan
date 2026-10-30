@@ -185,3 +185,148 @@ def test_list_products_rejects_limit_above_maximum(reset_product_data):
         params={"limit": 101}
     )
     assert response.status_code == 422
+
+def test_get_product_by_id(reset_product_data):
+    # Arrange: create a product through the POST endpoint.
+    product_data = {
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 75000,
+        "space_required": 2.5,
+    }
+    create_response=client.post("/products",json=product_data)
+
+    product_id=create_response.json()["id"]
+
+    response = client.get(f"/products/{product_id}")
+
+    assert response.status_code == 200
+    returned_product = response.json()
+
+    assert returned_product["id"] == product_id
+    assert returned_product["name"] == "Laptop"
+    assert returned_product["category"] == "Electronics"
+    assert returned_product["price"] == 75000
+    assert returned_product["space_required"] == 2.5
+
+def test_get_product_by_id_returns_404_when_not_found(reset_product_data):
+    response=client.get("/products/999")
+    assert response.status_code==404
+    assert response.json() == {"detail": "Product Not Found"}
+
+def test_patch_product_updates_only_supplied_fields(reset_product_data):
+    product_data = {
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 75000,
+        "space_required": 2.5,
+    }
+    create_response=client.post("/products",json=product_data)
+    product_id=create_response.json()["id"]
+
+    response =client.patch(
+        f"/products/{product_id}",
+        json={"price":70000}
+    )
+
+    assert response.status_code==200
+
+    updated_product=response.json()
+    # Verify that the supplied field changed.
+    assert updated_product["price"] == 70000
+
+    # Verify that fields not supplied remain unchanged.
+    assert updated_product["id"] == product_id
+    assert updated_product["name"] == "Laptop"
+    assert updated_product["category"] == "Electronics"
+    assert updated_product["space_required"] == 2.5
+
+
+def test_patch_product_rejects_empty_update(reset_product_data):
+    product_data = {
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 75000,
+        "space_required": 2.5,
+    }
+    create_response = client.post("/products", json=product_data)
+    product_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/products/{product_id}",
+        json={}
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "No fields provided for update"
+    }
+
+def test_patch_product_rejects_null_values(reset_product_data):
+    product_data = {
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 75000,
+        "space_required": 2.5,
+    }
+    create_response = client.post("/products", json=product_data)
+    product_id = create_response.json()["id"]
+
+    response=client.patch(f"/products/{product_id}",json={"name":None})
+
+    assert response.status_code==400
+    assert response.json()=={"detail":"Fields cannot be null"}
+
+def test_patch_product_returns_404_when_not_found(reset_product_data):
+    # Act: attempt to update a product that does not exist.
+    response = client.patch(
+        "/products/999",
+        json={"price": 70000},
+    )
+
+    # Assert: the API returns HTTP 404 Not Found.
+    assert response.status_code == 404
+
+    # Assert: the response contains the expected error detail.
+    assert response.json() == {
+        "detail": "Product Not Found"
+    }
+
+def test_delete_product_successfully(reset_product_data):
+    product_data = {
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 75000,
+        "space_required": 2.5,
+    }
+    create_response = client.post("/products", json=product_data)
+    product_id = create_response.json()["id"]
+
+    response=client.delete(f"/products{product_id}")
+    # Assert: deletion was successful.
+    assert response.status_code == 204
+
+    # Verify that the product no longer exists.
+    get_response = client.get(f"/products/{product_id}")
+
+    assert get_response.status_code == 404
+    assert get_response.json() == {
+        "detail": "Product Not Found"
+    }
+def test_delete_product_returns_404_when_not_found(reset_product_data):
+    # Act: attempt to delete a product that doesn't exist.
+    response = client.delete("/products/999")
+
+    # Assert: the API returns HTTP 404.
+    assert response.status_code == 404
+
+    # Verify the error response.
+    assert response.json() == {
+        "detail": "Product Not Found"
+    }
+
+
+
+
+
+
+
