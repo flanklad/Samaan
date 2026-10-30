@@ -301,10 +301,9 @@ def test_delete_product_successfully(reset_product_data):
     create_response = client.post("/products", json=product_data)
     product_id = create_response.json()["id"]
 
-    response=client.delete(f"/products{product_id}")
+    response=client.delete(f"/products/{product_id}")
     # Assert: deletion was successful.
     assert response.status_code == 204
-
     # Verify that the product no longer exists.
     get_response = client.get(f"/products/{product_id}")
 
@@ -323,8 +322,6 @@ def test_delete_product_returns_404_when_not_found(reset_product_data):
     assert response.json() == {
         "detail": "Product Not Found"
     }
-
-
 
 
 

@@ -38,5 +38,3 @@ def delete_product(product_id:int)-> bool:
     return False
 
 
-
-
